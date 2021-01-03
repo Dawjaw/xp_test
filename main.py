@@ -5,9 +5,11 @@ import urllib
 import time
 from montydb import MontyClient
 import backup
+import schedule
+import threading
 
 
-global SECRET
+SECRET = ""
 pp = pprint.PrettyPrinter()
 
 with open('hypixel_secret.json') as json_file:
@@ -17,11 +19,14 @@ with open('hypixel_secret.json') as json_file:
 
 client = MontyClient("database")
 db = client['xp_database']
-collection = db['pet_xp_db']
+collection = db['farming_xp']
 
-profiles = ["b876ec32e396476ba1158438d83c67d4"]
-
+profile = "b876ec32e396476ba1158438d83c67d4"
 # techno b876ec32e396476ba1158438d83c67d4
+
+
+def plot_graph():
+	pass
 
 
 def send_url_command(profile):
@@ -35,36 +40,36 @@ def send_url_command(profile):
 
 
 def main():
-
-	current_i = 0
-	xp_list = []
+	global profile
 	while True:
 		try:
-			prof = profiles[0]
-			if prof == "b876ec32e396476ba1158438d83c67d4":
-				current_xp = 0
-				current_time = time.time_ns()
-				xp = send_url_command(prof)
-				for i in range(0, len(xp['pets'])):
-					if xp['pets'][i]['type'] == 'ELEPHANT':
-						current_xp = xp['pets'][i]['exp']
-				data_val = {'timestamp': current_time, 'xp': current_xp}
-				print(round(current_xp))
-				print(data_val)
-				collection.insert_one(data_val)
-				current_i+=1
-				if current_i == 60:
-					backup.main()
-					current_i = 0
-				time.sleep(60)
-		except urllib.error.HTTPError:
-			time.sleep(5)
+			current_xp = 0
+			current_time = time.time_ns()
+			xp = send_url_command(profile)
+			current_xp = xp['experience_skill_farming']
+			data_val = {'timestamp': current_time, 'xp': current_xp}
+			print(round(current_xp))
+			print(data_val)
+			collection.insert_one(data_val)
+		except urllib.error.HTTPError as httper:
+			print(httper)
 			continue
-		except ConnectionResetError:
-			time.sleep(60)
+		except ConnectionResetError as cre:
+			print(cre)
 			continue
-		except urllib.error.URLError:
-			time.sleep(60)
+		except urllib.error.URLError as urlerror:
+			print(urlerror)   
 			continue
 
-main()
+
+schedule.every(60).seconds.do(run_threaded, main).tag('check_task', 'Main')
+schedule.every(120).seconds.do(run_threaded, plot_graph).tag('check_task', 'plot')
+
+
+while True:
+    try:
+        schedule.run_pending()
+        time.sleep(0.1)
+    except Exception:
+	schedule.clear("check_task")
+	sys.exit(0)
