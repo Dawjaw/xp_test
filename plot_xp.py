@@ -7,12 +7,12 @@ import git
 from pathlib import Path
 import os
 
-PATH_OF_GIT_REPO = Path("F:\\Dawjaw.github.io\\.git")
-COMMIT_MESSAGE = 'updated chart data'
+# PATH_OF_GIT_REPO = Path("F:\\Dawjaw.github.io\\.git")
+# COMMIT_MESSAGE = 'updated chart data'
 
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
 
-
+'''
 def git_push():
 	try:
 		repo = Repo(PATH_OF_GIT_REPO)
@@ -23,7 +23,7 @@ def git_push():
 		print("Done")
 	except git.GitCommandError as e:
 		print(e)
-
+'''
 
 def plot_minute_xp(collection):
 	cursor = collection.find({})
@@ -73,17 +73,9 @@ def main():
 
 	client = MontyClient("database")
 	db = client['xp_database']
-	collection = db['pet_xp_db']
+	collection = db['farming_xp']
 	
-
 	plot_minute_xp(collection)
-	git_push()
 
 
-while True:
-	try:
-		main()
-		time.sleep(60)
-	except ConnectionResetError:
-		continue
-
+main()
